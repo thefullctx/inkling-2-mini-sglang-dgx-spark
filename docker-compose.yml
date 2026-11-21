@@ -2,9 +2,14 @@ services:
   inkling2-mini-sglang:
     image: ${SGLANG_IMAGE:-lmsysorg/sglang:inkling-2-mini}
     container_name: inkling2-mini-sglang
+    pull_policy: if_not_present
     restart: unless-stopped
+    stop_grace_period: 15s
     ipc: host
     shm_size: 32g
+    ulimits:
+      memlock: -1
+      stack: 67108864
     ports:
       - "${PORT:-8000}:${PORT:-8000}"
     volumes:
@@ -13,6 +18,14 @@ services:
       - MAX_JOBS=4
       - HF_HUB_DISABLE_XET=1
       - HF_TOKEN=${HF_TOKEN:-}
+      - API_KEY=${API_KEY:-}
+      - MODEL_ID=${MODEL_ID:-thinkingmachines/Inkling-2-Mini}
+      - HOST=${HOST:-0.0.0.0}
+      - PORT=${PORT:-8000}
+      - SGLANG_PAGE_SIZE=${SGLANG_PAGE_SIZE:-16}
+      - SGLANG_NUM_DRAFT_TOKENS=${SGLANG_NUM_DRAFT_TOKENS:-8}
+      - SGLANG_MEM_FRACTION=${SGLANG_MEM_FRACTION:-0.45}
+      - SGLANG_CUDA_GRAPH_MAX_BS=${SGLANG_CUDA_GRAPH_MAX_BS:-8}
       - SGLANG_OPT_INKLING2_VERIFY_REL_BIAS_KERNEL=1
       - SGLANG_OPT_DSV41_DSPARK_MID_FOLD=1
       - SGLANG_OPT_DSV41_DSPARK_PREPARE_INPUTS_ONCE=1
@@ -20,39 +33,32 @@ services:
       - SGLANG_FLASHINFER_MOE_FUSED_FINALIZE=1
       - SGLANG_OPT_MOE_QUANT_ONCE=1
     command:
-      - sglang
-      - serve
-      - --model-path
-      - ${MODEL_ID:-thinkingmachines/Inkling-2-Mini}
-      - --tp
-      - "1"
-      - --ep
-      - "1"
-      - --attention-backend
-      - fa4
-      - --dtype
-      - bfloat16
-      - --page-size
-      - "${SGLANG_PAGE_SIZE:-16}"
-      - --speculative-algorithm
-      - DSPARK
-      - --speculative-num-draft-tokens
-      - "${SGLANG_NUM_DRAFT_TOKENS:-8}"
-      - --mem-fraction-static
-      - "${SGLANG_MEM_FRACTION:-0.45}"
-      - --cuda-graph-max-bs-decode
-      - "${SGLANG_CUDA_GRAPH_MAX_BS:-8}"
-      - --grammar-backend
-      - xgrammar
-      - --enable-multimodal
-      - --reasoning-parser
-      - inkling
-      - --tool-call-parser
-      - inkling2
-      - --host
-      - "${HOST:-0.0.0.0}"
-      - --port
-      - "${PORT:-8000}"
+      - /bin/bash
+      - -lc
+      - >-
+        exec sglang serve
+        --model-path "$MODEL_ID"
+        --tp 1 --ep 1
+        --attention-backend fa4
+        --dtype bfloat16
+        --page-size "$SGLANG_PAGE_SIZE"
+        --speculative-algorithm DSPARK
+        --speculative-num-draft-tokens "$SGLANG_NUM_DRAFT_TOKENS"
+        --mem-fraction-static "$SGLANG_MEM_FRACTION"
+        --cuda-graph-max-bs-decode "$SGLANG_CUDA_GRAPH_MAX_BS"
+        --grammar-backend xgrammar
+        --enable-multimodal
+        --reasoning-parser inkling
+        --tool-call-parser inkling2
+        --host "$HOST"
+        --port "$PORT"
+        ${API_KEY:+--api-key "$API_KEY"}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:${PORT:-8000}/health >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 480s
     deploy:
       resources:
         reservations:

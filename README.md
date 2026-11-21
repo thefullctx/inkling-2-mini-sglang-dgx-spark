@@ -108,3 +108,25 @@ python3 benchmarks/bench.py --label my-run --temperature 0.0
 # Realistic sampling benchmark (temperature=0.6)
 python3 benchmarks/bench.py --label my-run-t06 --temperature 0.6
 ```
+
+---
+
+## Unified Memory Budget (1× DGX Spark — 121.6 GiB Usable)
+
+Measured live on `NVIDIA GB10` (`--mem-fraction-static 0.45`):
+
+| Component | Footprint |
+| :--- | :---: |
+| Main weights (`Inkling2LoopForConditionalGeneration`, NVFP4/MXFP8) | 20.6 GiB |
+| DSpark draft head (`Inkling2ForConditionalGenerationMTP`, BF16) | 1.4 GiB |
+| Target + draft KV & Mamba state pools (~475K full tokens, 47K SWA) | 23.9 GiB |
+| CUDA graphs, runtime buffers & host OS | ~16.9 GiB |
+| **Total Used** | **~62.8 GiB** |
+| **Free Headroom (OS / local agents / tools)** | **~58.8 GiB** |
+
+## Helper Scripts & Security
+
+* `./status.sh` — Check container health and `/v1/models`
+* `./logs.sh` — Tail live SGLang logs
+* Inline overrides work without editing `.env` (e.g. `PORT=8001 ./start.sh`)
+* Set `API_KEY=your-secret` or `HOST=127.0.0.1` in `.env` if you don't want an unauthenticated `0.0.0.0` bind.
