@@ -216,6 +216,7 @@ def main():
     ap.add_argument("--base-url", default="http://127.0.0.1:8000")
     ap.add_argument("--label", required=True)
     ap.add_argument("--out-dir", default=str(Path(__file__).resolve().parent / "results"))
+    ap.add_argument("--temperature", type=float, default=0.6)
     args = ap.parse_args()
 
     model = wait_ready(args.base_url)
@@ -237,7 +238,7 @@ def main():
         "Write a Rust function to parse a streaming Server-Sent Events (SSE) byte stream into complete event frames with unit tests.",
     ]
     print("Benchmark 1/3: c=1 short prompt decode (3 runs, max_tokens=512)...")
-    c1_runs = [stream_chat(args.base_url, model, [{"role": "user", "content": p}], max_tokens=512) for p in short_prompts]
+    c1_runs = [stream_chat(args.base_url, model, [{"role": "user", "content": p}], max_tokens=512, temperature=args.temperature) for p in short_prompts]
     c1_avg_tps = round(sum(r["decode_tps"] for r in c1_runs) / len(c1_runs), 2)
     c1_avg_ttft = round(sum(r["ttft_s"] for r in c1_runs) / len(c1_runs), 4)
     print(f"  c=1 avg decode: {c1_avg_tps} tok/s | avg TTFT: {c1_avg_ttft}s")
@@ -258,6 +259,7 @@ def main():
             {"role": "user", "content": "Summarize the three main concepts in the reference document in 3 bullet points."},
         ],
         max_tokens=256,
+        temperature=args.temperature,
     )
     warm = stream_chat(
         args.base_url,
@@ -267,6 +269,7 @@ def main():
             {"role": "user", "content": "Now explain why virtual nodes help with heterogeneous hardware in 3 sentences."},
         ],
         max_tokens=256,
+        temperature=args.temperature,
     )
     print(f"  Long ctx ({cold['prompt_tokens']} prompt tok): cold TTFT={cold['ttft_s']}s, warm TTFT={warm['ttft_s']}s, decode={warm['decode_tps']} tok/s")
 
@@ -278,7 +281,7 @@ def main():
     t0 = time.perf_counter()
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as ex:
         c4_runs = list(
-            ex.map(lambda p: stream_chat(args.base_url, model, [{"role": "user", "content": p}], max_tokens=512), conc_prompts)
+            ex.map(lambda p: stream_chat(args.base_url, model, [{"role": "user", "content": p}], max_tokens=512, temperature=args.temperature), conc_prompts)
         )
     c4_wall = max(time.perf_counter() - t0, 1e-6)
     c4_total_tok = sum(r["completion_tokens"] for r in c4_runs)

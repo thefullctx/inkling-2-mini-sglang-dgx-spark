@@ -17,6 +17,8 @@ services:
       - SGLANG_OPT_DSV41_DSPARK_MID_FOLD=1
       - SGLANG_OPT_DSV41_DSPARK_PREPARE_INPUTS_ONCE=1
       - SGLANG_OPT_DSV41_DSPARK_SKIP_PREFILLED_INPUTS=1
+      - SGLANG_FLASHINFER_MOE_FUSED_FINALIZE=1
+      - SGLANG_OPT_MOE_QUANT_ONCE=1
     command:
       - sglang
       - serve
@@ -31,13 +33,15 @@ services:
       - --dtype
       - bfloat16
       - --page-size
-      - "128"
+      - "${SGLANG_PAGE_SIZE:-16}"
       - --speculative-algorithm
       - DSPARK
       - --speculative-num-draft-tokens
       - "${SGLANG_NUM_DRAFT_TOKENS:-8}"
       - --mem-fraction-static
       - "${SGLANG_MEM_FRACTION:-0.45}"
+      - --cuda-graph-max-bs-decode
+      - "${SGLANG_CUDA_GRAPH_MAX_BS:-8}"
       - --grammar-backend
       - xgrammar
       - --enable-multimodal

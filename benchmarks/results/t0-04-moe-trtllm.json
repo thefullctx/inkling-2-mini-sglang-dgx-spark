@@ -1,0 +1,141 @@
+{
+  "label": "t0-04-moe-trtllm",
+  "model": "thinkingmachines/Inkling-2-Mini",
+  "timestamp": "2026-11-21T04:03:49Z",
+  "memory_mb": {
+    "total_mb": 124544,
+    "used_mb": 94171,
+    "available_mb": 30372
+  },
+  "smoke": {
+    "chat_reasoning": {
+      "ok": true,
+      "has_reasoning_field": true,
+      "content_preview": "391"
+    },
+    "tool_calling": {
+      "ok": true,
+      "tool_calls": [
+        {
+          "id": "call_20f20ef724fc4bd6b99ae62c",
+          "index": 0,
+          "type": "function",
+          "function": {
+            "name": "get_weather",
+            "arguments": "{\"city\": \"Tokyo\"}"
+          }
+        }
+      ]
+    },
+    "vision": {
+      "ok": true,
+      "content_preview": "Red"
+    }
+  },
+  "c1_short": {
+    "avg_decode_tps": 48.41,
+    "avg_ttft_s": 0.2421,
+    "runs": [
+      {
+        "prompt_tokens": 41,
+        "completion_tokens": 512,
+        "ttft_s": 0.2261,
+        "total_s": 10.6889,
+        "decode_tps": 48.84,
+        "e2e_tps": 47.9,
+        "has_reasoning": true,
+        "preview": "The user wants a clean, idiomatic Python async HTTP rate limiter using a token bucket algorithm with type hints and brie"
+      },
+      {
+        "prompt_tokens": 43,
+        "completion_tokens": 512,
+        "ttft_s": 0.2434,
+        "total_s": 9.6926,
+        "decode_tps": 54.08,
+        "e2e_tps": 52.82,
+        "has_reasoning": true,
+        "preview": "The user asks for an explanation of three mechanisms in modern LLM inference engines: Mixture-of-Experts routing, load b"
+      },
+      {
+        "prompt_tokens": 40,
+        "completion_tokens": 512,
+        "ttft_s": 0.2569,
+        "total_s": 12.3325,
+        "decode_tps": 42.32,
+        "e2e_tps": 41.52,
+        "has_reasoning": true,
+        "preview": "The user wants a Rust function to parse a streaming Server-Sent Events (SSE) byte stream into complete event frames, wit"
+      }
+    ]
+  },
+  "c1_long": {
+    "cold": {
+      "prompt_tokens": 15578,
+      "completion_tokens": 251,
+      "ttft_s": 8.7752,
+      "total_s": 12.8507,
+      "decode_tps": 61.34,
+      "e2e_tps": 19.53,
+      "has_reasoning": true,
+      "preview": "- Consistent hashing maps keys and nodes onto a ring so node additions/removals remap only a small fraction of keys. - V"
+    },
+    "warm": {
+      "prompt_tokens": 15576,
+      "completion_tokens": 256,
+      "ttft_s": 0.3226,
+      "total_s": 8.0116,
+      "decode_tps": 33.16,
+      "e2e_tps": 31.95,
+      "has_reasoning": true,
+      "preview": "The user asks: \"Now explain why virtual nodes help with heterogeneous hardware in 3 sentences.\" They provided a referenc"
+    }
+  },
+  "c4_concurrent": {
+    "wall_s": 33.0,
+    "total_completion_tokens": 2048,
+    "aggregate_tps": 62.06,
+    "avg_per_user_decode_tps": 21.55,
+    "runs": [
+      {
+        "prompt_tokens": 41,
+        "completion_tokens": 512,
+        "ttft_s": 0.4257,
+        "total_s": 17.86,
+        "decode_tps": 29.31,
+        "e2e_tps": 28.67,
+        "has_reasoning": true,
+        "preview": "The user wants a clean, idiomatic Python async HTTP rate limiter using a token bucket algorithm with type hints and brie"
+      },
+      {
+        "prompt_tokens": 43,
+        "completion_tokens": 512,
+        "ttft_s": 0.4254,
+        "total_s": 32.9986,
+        "decode_tps": 15.69,
+        "e2e_tps": 15.52,
+        "has_reasoning": true,
+        "preview": "The user asks for an explanation of three mechanisms in modern LLM inference engines: Mixture-of-Experts routing, load b"
+      },
+      {
+        "prompt_tokens": 40,
+        "completion_tokens": 512,
+        "ttft_s": 0.425,
+        "total_s": 23.0808,
+        "decode_tps": 22.55,
+        "e2e_tps": 22.18,
+        "has_reasoning": true,
+        "preview": "The user wants a Rust function to parse a streaming Server-Sent Events (SSE) byte stream into complete event frames, wit"
+      },
+      {
+        "prompt_tokens": 38,
+        "completion_tokens": 512,
+        "ttft_s": 0.4249,
+        "total_s": 27.8244,
+        "decode_tps": 18.65,
+        "e2e_tps": 18.4,
+        "has_reasoning": true,
+        "preview": "The user wants a design for a multi-tenant time-series metrics store in PostgreSQL with retention policies. This is a te"
+      }
+    ]
+  }
+}
