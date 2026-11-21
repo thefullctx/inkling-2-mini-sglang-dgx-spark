@@ -1,0 +1,58 @@
+services:
+  inkling2-mini-sglang:
+    image: ${SGLANG_IMAGE:-lmsysorg/sglang:inkling-2-mini}
+    container_name: inkling2-mini-sglang
+    restart: unless-stopped
+    ipc: host
+    shm_size: 32g
+    ports:
+      - "${PORT:-8000}:${PORT:-8000}"
+    volumes:
+      - "${HF_CACHE_DIR:-~/.cache/huggingface}:/root/.cache/huggingface"
+    environment:
+      - MAX_JOBS=4
+      - HF_HUB_DISABLE_XET=1
+      - HF_TOKEN=${HF_TOKEN:-}
+      - SGLANG_OPT_INKLING2_VERIFY_REL_BIAS_KERNEL=1
+      - SGLANG_OPT_DSV41_DSPARK_MID_FOLD=1
+      - SGLANG_OPT_DSV41_DSPARK_PREPARE_INPUTS_ONCE=1
+      - SGLANG_OPT_DSV41_DSPARK_SKIP_PREFILLED_INPUTS=1
+    command:
+      - sglang
+      - serve
+      - --model-path
+      - ${MODEL_ID:-thinkingmachines/Inkling-2-Mini}
+      - --tp
+      - "1"
+      - --ep
+      - "1"
+      - --attention-backend
+      - fa4
+      - --dtype
+      - bfloat16
+      - --page-size
+      - "128"
+      - --speculative-algorithm
+      - DSPARK
+      - --speculative-num-draft-tokens
+      - "${SGLANG_NUM_DRAFT_TOKENS:-8}"
+      - --mem-fraction-static
+      - "${SGLANG_MEM_FRACTION:-0.45}"
+      - --grammar-backend
+      - xgrammar
+      - --enable-multimodal
+      - --reasoning-parser
+      - inkling
+      - --tool-call-parser
+      - inkling2
+      - --host
+      - "${HOST:-0.0.0.0}"
+      - --port
+      - "${PORT:-8000}"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]

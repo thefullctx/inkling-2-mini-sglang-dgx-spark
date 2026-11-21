@@ -1,0 +1,42 @@
+recipe_version: "2"
+name: inkling-2-mini-sglang-dgx-spark
+model: thinkingmachines/Inkling-2-Mini
+runtime: sglang
+container: lmsysorg/sglang:inkling-2-mini
+
+metadata:
+  description: "Thinking Machines Inkling-2-Mini (NVFP4/MXFP8) with DSpark speculative decoding on a single NVIDIA DGX Spark"
+
+defaults:
+  port: 8000
+  host: 0.0.0.0
+  tensor_parallel: 1
+  expert_parallel: 1
+  mem_fraction_static: 0.45
+
+env:
+  MAX_JOBS: "4"
+  HF_HUB_DISABLE_XET: "1"
+  SGLANG_OPT_INKLING2_VERIFY_REL_BIAS_KERNEL: "1"
+  SGLANG_OPT_DSV41_DSPARK_MID_FOLD: "1"
+  SGLANG_OPT_DSV41_DSPARK_PREPARE_INPUTS_ONCE: "1"
+  SGLANG_OPT_DSV41_DSPARK_SKIP_PREFILLED_INPUTS: "1"
+
+extra_args:
+  - --attention-backend
+  - fa4
+  - --dtype
+  - bfloat16
+  - --page-size
+  - "128"
+  - --speculative-algorithm
+  - DSPARK
+  - --speculative-num-draft-tokens
+  - "8"
+  - --grammar-backend
+  - xgrammar
+  - --enable-multimodal
+  - --reasoning-parser
+  - inkling
+  - --tool-call-parser
+  - inkling2
