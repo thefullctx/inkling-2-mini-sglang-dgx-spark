@@ -5,6 +5,7 @@ import torch
 from sglang.srt.models.gemv_int8 import int8_linear, quantize_weight_int8_per_row
 
 _DRAFT_INT8 = os.environ.get("SGLANG_INKLING2_DRAFT_INT8", "0") == "1"
+_DRAFT_LAYERS_INT8 = os.environ.get("SGLANG_INKLING2_DRAFT_LAYERS_INT8", "0") == "1"
 
 from torch import nn
 
@@ -447,7 +448,34 @@ class Inkling2ForConditionalGenerationMTP(DSparkDraftModel):
             self._fuse_alpha = fuse_alpha
         else:
             self._fuse_alpha.copy_(fuse_alpha)
+        if _DRAFT_LAYERS_INT8 and get_parallel().tp_size == 1:
+            self._quantize_draft_layers_int8()
         return loaded
+
+    @torch.no_grad()
+    def _quantize_draft_layers_int8(self):
+        def _wrap_linear(mod):
+            if mod is None or not hasattr(mod, "weight") or mod.weight.dtype != torch.bfloat16:
+                return
+            w_q, scale = quantize_weight_int8_per_row(mod.weight)
+            bias = getattr(mod, "bias", None)
+            orig_fwd = mod.forward
+            mod._int8_wq = w_q
+            mod._int8_scale = scale
+
+            def _int8_fwd(x, _orig=orig_fwd, _wq=w_q, _sc=scale, _b=bias):
+                if x.ndim == 2 and x.shape[0] <= 64:
+                    return int8_linear(x.to(torch.bfloat16), _wq, _sc, _b), None
+                return _orig(x)
+
+            mod.forward = _int8_fwd
+
+        for layer in self.layers:
+            _wrap_linear(layer.self_attn.qkv_proj)
+            _wrap_linear(layer.self_attn.o_proj)
+            _wrap_linear(layer.self_attn.kv_proj_ctx)
+            _wrap_linear(layer.mlp.gate_up_proj)
+            _wrap_linear(layer.mlp.down_proj)
 
 
 EntryClass = Inkling2ForConditionalGenerationMTP
