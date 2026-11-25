@@ -1,5 +1,5 @@
 [Unit]
-Description=Inkling-2-Mini SGLang + DSpark Inference Server (DGX Spark)
+Description=Inkling-2-Mini SGLang + DFlash2 Inference Server (DGX Spark)
 After=network-online.target docker.service
 Wants=network-online.target
 

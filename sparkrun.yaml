@@ -5,7 +5,7 @@ runtime: sglang
 container: lmsysorg/sglang:inkling-2-mini
 
 metadata:
-  description: "Thinking Machines Inkling-2-Mini (NVFP4/MXFP8) with tuned SGLang + DSpark on a single NVIDIA DGX Spark"
+  description: "Thinking Machines Inkling-2-Mini (NVFP4/MXFP8) with SGLang + DFlash2 on a single NVIDIA DGX Spark"
 
 defaults:
   port: 8000
@@ -17,10 +17,6 @@ defaults:
 env:
   MAX_JOBS: "4"
   HF_HUB_DISABLE_XET: "1"
-  SGLANG_OPT_INKLING2_VERIFY_REL_BIAS_KERNEL: "1"
-  SGLANG_OPT_DSV41_DSPARK_MID_FOLD: "1"
-  SGLANG_OPT_DSV41_DSPARK_PREPARE_INPUTS_ONCE: "1"
-  SGLANG_OPT_DSV41_DSPARK_SKIP_PREFILLED_INPUTS: "1"
   SGLANG_FLASHINFER_MOE_FUSED_FINALIZE: "1"
   SGLANG_OPT_MOE_QUANT_ONCE: "1"
 
@@ -34,9 +30,13 @@ extra_args:
   - --cuda-graph-max-bs-decode
   - "8"
   - --speculative-algorithm
-  - DSPARK
+  - DFLASH
+  - --speculative-draft-model-path
+  - incoai/Inkling-2-Mini-DFlash2
   - --speculative-num-draft-tokens
   - "8"
+  - --speculative-draft-attention-backend
+  - fa4
   - --grammar-backend
   - xgrammar
   - --enable-multimodal

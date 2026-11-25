@@ -4,7 +4,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
 # Preserve inline environment overrides over .env values
-_VARS=(MODEL_ID HOST PORT API_KEY HF_CACHE_DIR HF_TOKEN SGLANG_IMAGE SGLANG_MEM_FRACTION SGLANG_PAGE_SIZE SGLANG_CUDA_GRAPH_MAX_BS SGLANG_NUM_DRAFT_TOKENS SGLANG_INKLING2_DRAFT_INT8 SGLANG_INKLING2_DRAFT_LAYERS_INT8 SGLANG_INKLING2_VERIFY_CAP)
+_VARS=(MODEL_ID DRAFT_MODEL_ID HOST PORT API_KEY HF_CACHE_DIR HF_TOKEN SGLANG_IMAGE SGLANG_MEM_FRACTION SGLANG_PAGE_SIZE SGLANG_CUDA_GRAPH_MAX_BS SGLANG_NUM_DRAFT_TOKENS)
 declare -A _SAVED=()
 for v in "${_VARS[@]}"; do
   [ -n "${!v+x}" ] && _SAVED[$v]="${!v}"
@@ -24,6 +24,6 @@ if [ "${HOST:-0.0.0.0}" = "0.0.0.0" ] && [ -z "${API_KEY:-}" ]; then
   echo "[WARN] Binding 0.0.0.0:${PORT:-8000} with no API_KEY set. Set API_KEY or HOST=127.0.0.1 in .env to restrict access."
 fi
 
-echo "Starting Inkling-2-Mini (SGLang + DSpark) on ${HOST:-0.0.0.0}:${PORT:-8000}..."
+echo "Starting Inkling-2-Mini (SGLang + DFlash2) on ${HOST:-0.0.0.0}:${PORT:-8000}..."
 docker compose up -d
 echo "Started. Check status with ./status.sh or logs with ./logs.sh"

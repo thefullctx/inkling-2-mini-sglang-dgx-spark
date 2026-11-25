@@ -14,43 +14,38 @@ services:
       - "${PORT:-8000}:${PORT:-8000}"
     volumes:
       - "${HF_CACHE_DIR:-~/.cache/huggingface}:/root/.cache/huggingface"
-      - "./overlay/gemv_int8.py:/sgl-workspace/sglang/python/sglang/srt/models/gemv_int8.py:ro"
-      - "./overlay/inkling2_mtp.py:/sgl-workspace/sglang/python/sglang/srt/models/inkling2_mtp.py:ro"
+      - "./overlay/sglang_inkling_dflash2.py:/usr/local/share/sglang_inkling_dflash2.py:ro"
       - "./overlay/inkling2_moe.py:/sgl-workspace/sglang/python/sglang/srt/models/inkling_common/inkling2_moe.py:ro"
-      - "./overlay/dspark_verify.py:/sgl-workspace/sglang/python/sglang/srt/speculative/dspark_components/dspark_verify.py:ro"
     environment:
       - MAX_JOBS=4
       - HF_HUB_DISABLE_XET=1
       - HF_TOKEN=${HF_TOKEN:-}
       - API_KEY=${API_KEY:-}
       - MODEL_ID=${MODEL_ID:-thinkingmachines/Inkling-2-Mini}
+      - DRAFT_MODEL_ID=${DRAFT_MODEL_ID:-incoai/Inkling-2-Mini-DFlash2}
       - HOST=${HOST:-0.0.0.0}
       - PORT=${PORT:-8000}
       - SGLANG_PAGE_SIZE=${SGLANG_PAGE_SIZE:-16}
       - SGLANG_NUM_DRAFT_TOKENS=${SGLANG_NUM_DRAFT_TOKENS:-8}
       - SGLANG_MEM_FRACTION=${SGLANG_MEM_FRACTION:-0.45}
       - SGLANG_CUDA_GRAPH_MAX_BS=${SGLANG_CUDA_GRAPH_MAX_BS:-8}
-      - SGLANG_INKLING2_DRAFT_INT8=${SGLANG_INKLING2_DRAFT_INT8:-1}
-      - SGLANG_INKLING2_DRAFT_LAYERS_INT8=${SGLANG_INKLING2_DRAFT_LAYERS_INT8:-0}
-      - SGLANG_INKLING2_VERIFY_CAP=${SGLANG_INKLING2_VERIFY_CAP:-5}
-      - SGLANG_OPT_INKLING2_VERIFY_REL_BIAS_KERNEL=1
-      - SGLANG_OPT_DSV41_DSPARK_MID_FOLD=1
-      - SGLANG_OPT_DSV41_DSPARK_PREPARE_INPUTS_ONCE=1
-      - SGLANG_OPT_DSV41_DSPARK_SKIP_PREFILLED_INPUTS=1
       - SGLANG_FLASHINFER_MOE_FUSED_FINALIZE=1
       - SGLANG_OPT_MOE_QUANT_ONCE=1
     command:
       - /bin/bash
       - -lc
       - >-
+        python3 /usr/local/share/sglang_inkling_dflash2.py &&
         exec sglang serve
         --model-path "$MODEL_ID"
         --tp 1 --ep 1
         --attention-backend fa4
         --dtype bfloat16
         --page-size "$SGLANG_PAGE_SIZE"
-        --speculative-algorithm DSPARK
+        --speculative-algorithm DFLASH
+        --speculative-draft-model-path "$DRAFT_MODEL_ID"
         --speculative-num-draft-tokens "$SGLANG_NUM_DRAFT_TOKENS"
+        --speculative-draft-attention-backend fa4
         --mem-fraction-static "$SGLANG_MEM_FRACTION"
         --cuda-graph-max-bs-decode "$SGLANG_CUDA_GRAPH_MAX_BS"
         --grammar-backend xgrammar
